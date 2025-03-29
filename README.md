@@ -52,6 +52,3 @@
 - **Day 28:** Deploy backend to Render/Heroku.
 - **Day 29:** Conduct final testing & polish UI.
 - **Day 30:** Prepare final documentation and presentation.
-
----
-This README will serve as the foundation for your capstone journey. Let me know if you want any tweaks! 🚀
