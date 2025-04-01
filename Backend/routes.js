@@ -25,4 +25,13 @@ router.post("/signup", async (req, res) => {
         res.status(201).json({ message: "User created successfully!" });
     });
 
+    router.get("/users", async (req, res) => {
+        try {
+            const users = await User.find().select("-password");
+            res.status(200).json(users);
+        } catch (error) {
+            res.status(500).json({ message: "Error retrieving users", error });
+        }
+    });
+
 module.exports = router;
