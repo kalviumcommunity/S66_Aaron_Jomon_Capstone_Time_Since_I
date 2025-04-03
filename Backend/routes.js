@@ -10,6 +10,10 @@ const User = mongoose.model("User", new mongoose.Schema({
     password: {type: String, required: true}
 }));
 
+router.get("/", (req, res) => {
+    res.send("Time Since I by Aaron Jomon");
+});
+
 // Signup Route
 router.post("/signup", async (req, res) => {
     const { username, email, password } = req.body;
