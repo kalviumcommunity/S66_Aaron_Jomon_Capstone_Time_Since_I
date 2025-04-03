@@ -1,8 +1,7 @@
 # Time Since I...
+## Authored by Aaron Jomon
 
-# Authored By Aaron Jomon
-
-# Backend Deployed Link
+## Backend Deployed Link
 - https://time-since-i.onrender.com
 
 ## Project Idea & Brief Description
