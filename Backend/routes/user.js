@@ -1,8 +1,12 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
-const User = require("../models/User");  // Import the schema
+const User = require("../models/User");
 
 const router = express.Router();
+
+router.get("/", (req, res) => {
+    res.send("User API is working!");
+});
 
 // Signup Route
 router.post("/signup", async (req, res) => {
@@ -26,8 +30,8 @@ router.post("/signup", async (req, res) => {
     }
 });
 
-// Get all users (No passwords exposed)
-router.get("/", async (req, res) => {
+// Get all users
+router.get("/all", async (req, res) => {
     try {
         const users = await User.find().select("-password");
         res.status(200).json(users);
@@ -36,7 +40,7 @@ router.get("/", async (req, res) => {
     }
 });
 
-// Update User (PUT /users/:id)
+// Update User
 router.put("/:id", async (req, res) => {
     try {
         const { id } = req.params;
