@@ -26,18 +26,6 @@ router.get("/:userId", async (req, res) => {
     }
 });
 
-
-// Get a single activity by ID
-router.get("/:id", async (req, res) => {
-    try {
-        const activity = await Activity.findById(req.params.id);
-        if (!activity) return res.status(404).json({ message: "Activity not found" });
-        res.status(200).json(activity);
-    } catch (error) {
-        res.status(500).json({ message: "Error retrieving activity", error });
-    }
-});
-
 // Update an activity
 router.put("/:id", async (req, res) => {
     try {
