@@ -5,7 +5,7 @@
 ## Backend Deployed Link
 - https://time-since-i.onrender.com
 
-## Backend Deployed Link
+## Frontend Deployed Link
 - https://timesincei.netlify.app/
 
 ## Project Idea & Brief Description
