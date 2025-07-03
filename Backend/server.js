@@ -14,6 +14,7 @@ app.use(cors());
 
 app.use("/api/users", userRoutes);
 app.use("/api/activities", activityRoutes);
+app.use('/api/auth', require('./routes/auth'));
 
 app.get("/", (req, res) => {
     res.send("Time Since I by Aaron Jomon");
