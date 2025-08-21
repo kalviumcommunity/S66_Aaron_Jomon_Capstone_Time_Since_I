@@ -31,12 +31,28 @@ function Header({ onAddActivity, onSearch, onLogout }) {
     }}>
       {/* Logo */}
       <div style={{
-        fontSize: '24px',
-        fontWeight: '700',
-        color: 'white',
-        letterSpacing: '1px'
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-start'
       }}>
-        TIME SINCE I...
+        <div style={{
+          fontSize: '24px',
+          fontWeight: '700',
+          color: 'white',
+          letterSpacing: '1px',
+          lineHeight: '1.2'
+        }}>
+          TIME SINCE I...
+        </div>
+        <div style={{
+          fontSize: '10px',
+          fontWeight: '400',
+          color: '#9ca3af',
+          letterSpacing: '0.5px',
+          marginTop: '2px'
+        }}>
+          BY AARON JOMON
+        </div>
       </div>
 
       {/* Search Bar */}
