@@ -103,7 +103,11 @@ function Dashboard() {
   // Check for overdue tasks and send notifications
   useEffect(() => {
     if (notificationsEnabled && activities.length > 0) {
-      notificationService.checkAndNotifyOverdueTasks(activities);
+      try {
+        notificationService.checkAndNotifyOverdueTasks(activities);
+      } catch (error) {
+        console.error('Error with notification service:', error);
+      }
     }
   }, [activities, notificationsEnabled]);
 
@@ -113,7 +117,11 @@ function Dashboard() {
 
     const interval = setInterval(() => {
       if (activities.length > 0) {
-        notificationService.checkAndNotifyOverdueTasks(activities);
+        try {
+          notificationService.checkAndNotifyOverdueTasks(activities);
+        } catch (error) {
+          console.error('Error in periodic notification check:', error);
+        }
       }
     }, 5 * 60 * 1000); // Check every 5 minutes
 
