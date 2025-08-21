@@ -3,12 +3,14 @@ import axios from '../api/axiosInstance';
 import ActivityCard from '../components/ActivityCard';
 import Header from '../components/Header';
 import { useNavigate } from 'react-router-dom';
+import notificationService from '../services/notificationService';
 
 function Dashboard() {
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [filteredActivities, setFilteredActivities] = useState([]);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const navigate = useNavigate();
 
   // Fetch activities from the backend
@@ -46,6 +48,8 @@ function Dashboard() {
   const handleMarkDone = async (activity) => {
     try {
       await axios.patch(`/activities/${activity._id}/done`);
+      // Clear notification for this task since it's now completed
+      notificationService.clearTaskNotification(activity._id);
       fetchActivities(); // Refresh the list
     } catch (error) {
       console.error('Error marking activity as done:', error);
@@ -85,10 +89,36 @@ function Dashboard() {
     }
   };
 
-  // Load on first render
+  // Initialize notifications on first render
   useEffect(() => {
+    const initializeNotifications = async () => {
+      const hasPermission = await notificationService.requestPermission();
+      setNotificationsEnabled(hasPermission);
+    };
+
+    initializeNotifications();
     fetchActivities();
   }, [fetchActivities]);
+
+  // Check for overdue tasks and send notifications
+  useEffect(() => {
+    if (notificationsEnabled && activities.length > 0) {
+      notificationService.checkAndNotifyOverdueTasks(activities);
+    }
+  }, [activities, notificationsEnabled]);
+
+  // Set up periodic notification checks (every 5 minutes)
+  useEffect(() => {
+    if (!notificationsEnabled) return;
+
+    const interval = setInterval(() => {
+      if (activities.length > 0) {
+        notificationService.checkAndNotifyOverdueTasks(activities);
+      }
+    }, 5 * 60 * 1000); // Check every 5 minutes
+
+    return () => clearInterval(interval);
+  }, [activities, notificationsEnabled]);
 
   return (
     <div style={{
@@ -102,6 +132,40 @@ function Dashboard() {
         onSearch={handleSearch}
         onLogout={handleLogout}
       />
+
+      {/* Notification Permission Banner */}
+      {!notificationsEnabled && (
+        <div style={{
+          background: 'linear-gradient(135deg, #8b45ff 0%, #6b35cc 100%)',
+          color: 'white',
+          padding: '12px 40px',
+          textAlign: 'center',
+          fontSize: '14px',
+          borderBottom: '1px solid #333'
+        }}>
+          <span style={{ marginRight: '15px' }}>
+            🔔 Enable notifications to get alerts when your tasks are due!
+          </span>
+          <button
+            onClick={async () => {
+              const hasPermission = await notificationService.requestPermission();
+              setNotificationsEnabled(hasPermission);
+            }}
+            style={{
+              background: 'rgba(255, 255, 255, 0.2)',
+              border: '1px solid rgba(255, 255, 255, 0.3)',
+              color: 'white',
+              padding: '6px 12px',
+              borderRadius: '4px',
+              fontSize: '12px',
+              cursor: 'pointer',
+              fontWeight: '500'
+            }}
+          >
+            Enable Notifications
+          </button>
+        </div>
+      )}
 
       <div style={{
         padding: '40px',
