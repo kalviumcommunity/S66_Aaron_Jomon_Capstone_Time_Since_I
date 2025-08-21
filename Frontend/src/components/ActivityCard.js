@@ -6,6 +6,38 @@ function ActivityCard({ activity, onMarkDone, onEdit, onDelete }) {
   const [isHovered, setIsHovered] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
 
+  // Check if task is overdue
+  const isOverdue = () => {
+    if (!lastDone) return false;
+
+    const now = currentTime;
+    const lastDoneDate = new Date(lastDone);
+    const diffMs = now - lastDoneDate;
+
+    let frequencyMs;
+    switch (frequencyUnit) {
+      case 'hours':
+        frequencyMs = frequencyValue * 60 * 60 * 1000;
+        break;
+      case 'days':
+        frequencyMs = frequencyValue * 24 * 60 * 60 * 1000;
+        break;
+      case 'weeks':
+        frequencyMs = frequencyValue * 7 * 24 * 60 * 60 * 1000;
+        break;
+      case 'months':
+        frequencyMs = frequencyValue * 30 * 24 * 60 * 60 * 1000;
+        break;
+      case 'years':
+        frequencyMs = frequencyValue * 365 * 24 * 60 * 60 * 1000;
+        break;
+      default:
+        frequencyMs = 24 * 60 * 60 * 1000;
+    }
+
+    return diffMs >= frequencyMs;
+  };
+
   // Update timer every 30 seconds for better minute tracking
   useEffect(() => {
     const interval = setInterval(() => {
@@ -136,8 +168,8 @@ function ActivityCard({ activity, onMarkDone, onEdit, onDelete }) {
         borderRadius: '20px',
         padding: '25px',
         margin: '15px',
-        boxShadow: isHovered ? '0 0 30px rgba(139, 69, 255, 0.3)' : 'none',
-        border: isHovered ? '1px solid rgba(139, 69, 255, 0.3)' : '1px solid #333',
+        boxShadow: isOverdue() ? '0 0 20px rgba(255, 68, 68, 0.4)' : (isHovered ? '0 0 30px rgba(139, 69, 255, 0.3)' : 'none'),
+        border: isOverdue() ? '2px solid #ff4444' : (isHovered ? '1px solid rgba(139, 69, 255, 0.3)' : '1px solid #333'),
         transition: 'all 0.3s ease',
         cursor: 'pointer',
         height: '220px',
