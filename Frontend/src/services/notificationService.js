@@ -69,45 +69,41 @@ class NotificationService {
     }
 
     const taskId = activity._id;
-    
+
     // Don't send duplicate notifications for the same task
     if (this.notifiedTasks.has(taskId)) {
       return;
     }
 
-    const notification = new Notification(`${activity.name} is due!`, {
-      body: `It's time to complete "${activity.name}". Click to open the app.`,
-      icon: '/favicontsi.ico',
-      badge: '/favicontsi.ico',
-      tag: `task-due-${taskId}`, // Prevents duplicate notifications
-      requireInteraction: true, // Keeps notification visible until user interacts
-      actions: [
-        {
-          action: 'mark-done',
-          title: 'Mark as Done'
-        },
-        {
-          action: 'dismiss',
-          title: 'Dismiss'
-        }
-      ]
-    });
+    try {
+      const notification = new Notification(`${activity.name} is due!`, {
+        body: `It's time to complete "${activity.name}". Click to open the app.`,
+        icon: '/favicontsi.ico',
+        tag: `task-due-${taskId}`, // Prevents duplicate notifications
+        requireInteraction: false // Allow auto-dismiss
+      });
 
-    // Handle notification click
-    notification.onclick = () => {
-      window.focus();
-      notification.close();
-    };
+      // Handle notification click
+      notification.onclick = () => {
+        window.focus();
+        notification.close();
+      };
 
-    // Mark this task as notified
-    this.notifiedTasks.add(taskId);
+      // Mark this task as notified
+      this.notifiedTasks.add(taskId);
 
-    // Remove from notified set after 1 hour to allow re-notification
-    setTimeout(() => {
-      this.notifiedTasks.delete(taskId);
-    }, 60 * 60 * 1000);
+      // Remove from notified set after 1 hour to allow re-notification
+      setTimeout(() => {
+        this.notifiedTasks.delete(taskId);
+      }, 60 * 60 * 1000);
 
-    return notification;
+      return notification;
+    } catch (error) {
+      console.error('Failed to send notification:', error);
+      // Mark as notified even if notification failed to prevent repeated attempts
+      this.notifiedTasks.add(taskId);
+      return null;
+    }
   }
 
   // Check all activities and send notifications for overdue ones
@@ -116,11 +112,15 @@ class NotificationService {
       return;
     }
 
-    activities.forEach(activity => {
-      if (this.isTaskOverdue(activity)) {
-        this.sendTaskDueNotification(activity);
-      }
-    });
+    try {
+      activities.forEach(activity => {
+        if (this.isTaskOverdue(activity)) {
+          this.sendTaskDueNotification(activity);
+        }
+      });
+    } catch (error) {
+      console.error('Error checking overdue tasks:', error);
+    }
   }
 
   // Clear notification tracking for a task (when marked as done)
