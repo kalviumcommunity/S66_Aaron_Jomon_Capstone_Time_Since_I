@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-function Header({ onAddActivity, onSearch }) {
+function Header({ onAddActivity, onSearch, onLogout }) {
   const [searchTerm, setSearchTerm] = useState('');
 
   const handleSearchChange = (e) => {
@@ -11,8 +11,13 @@ function Header({ onAddActivity, onSearch }) {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    window.dispatchEvent(new Event('authChange'));
+    if (onLogout) {
+      onLogout();
+    } else {
+      // Fallback if no onLogout prop provided
+      localStorage.removeItem('token');
+      window.dispatchEvent(new Event('authChange'));
+    }
   };
 
   return (
