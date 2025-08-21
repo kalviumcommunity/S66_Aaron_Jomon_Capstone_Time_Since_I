@@ -1,9 +1,19 @@
 // src/components/ActivityCard.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 function ActivityCard({ activity, onMarkDone, onEdit, onDelete }) {
   const { name, description, lastDone, frequencyValue, frequencyUnit, frequency } = activity;
   const [isHovered, setIsHovered] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  // Update timer every 30 seconds for better minute tracking
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 30000); // Update every 30 seconds
+
+    return () => clearInterval(interval);
+  }, []);
 
   const formatTimeSince = (date) => {
     if (!date) {
@@ -11,33 +21,40 @@ function ActivityCard({ activity, onMarkDone, onEdit, onDelete }) {
       return `0/${targetText}`;
     }
 
-    const now = new Date();
+    const now = currentTime;
     const lastDoneDate = new Date(date);
     const diffMs = now - lastDoneDate;
 
-    // Calculate difference in appropriate unit
+    // Calculate difference in the most appropriate unit for display
     let diffValue;
     let diffUnit;
 
-    if (frequencyUnit === 'hours') {
-      diffValue = Math.floor(diffMs / (1000 * 60 * 60));
-      diffUnit = 'h';
-    } else if (frequencyUnit === 'days') {
-      diffValue = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-      diffUnit = 'd';
-    } else if (frequencyUnit === 'weeks') {
-      diffValue = Math.floor(diffMs / (1000 * 60 * 60 * 24 * 7));
-      diffUnit = 'w';
-    } else if (frequencyUnit === 'months') {
-      diffValue = Math.floor(diffMs / (1000 * 60 * 60 * 24 * 30));
-      diffUnit = 'm';
-    } else if (frequencyUnit === 'years') {
-      diffValue = Math.floor(diffMs / (1000 * 60 * 60 * 24 * 365));
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const diffWeeks = Math.floor(diffMs / (1000 * 60 * 60 * 24 * 7));
+    const diffMonths = Math.floor(diffMs / (1000 * 60 * 60 * 24 * 30));
+    const diffYears = Math.floor(diffMs / (1000 * 60 * 60 * 24 * 365));
+
+    // Choose the most appropriate unit for display
+    if (diffYears >= 1) {
+      diffValue = diffYears;
       diffUnit = 'y';
-    } else {
-      // Fallback for old frequency format
-      diffValue = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    } else if (diffMonths >= 1) {
+      diffValue = diffMonths;
+      diffUnit = 'm';
+    } else if (diffWeeks >= 1) {
+      diffValue = diffWeeks;
+      diffUnit = 'w';
+    } else if (diffDays >= 1) {
+      diffValue = diffDays;
       diffUnit = 'd';
+    } else if (diffHours >= 1) {
+      diffValue = diffHours;
+      diffUnit = 'h';
+    } else {
+      diffValue = diffMinutes;
+      diffUnit = 'min';
     }
 
     const targetText = getTargetText();
@@ -46,20 +63,69 @@ function ActivityCard({ activity, onMarkDone, onEdit, onDelete }) {
 
   const getTargetText = () => {
     if (frequencyValue && frequencyUnit) {
-      const unitMap = {
-        'hours': 'H',
-        'days': 'D',
-        'weeks': 'W',
-        'months': 'M',
-        'years': 'Y'
-      };
-      return `${frequencyValue}${unitMap[frequencyUnit]}`;
+      // Convert target frequency to the most appropriate display unit
+      let targetValue = frequencyValue;
+      let targetUnit;
+
+      if (frequencyUnit === 'hours') {
+        if (targetValue >= 8760) { // 1 year
+          targetValue = Math.floor(targetValue / 8760);
+          targetUnit = 'y';
+        } else if (targetValue >= 720) { // 1 month
+          targetValue = Math.floor(targetValue / 720);
+          targetUnit = 'm';
+        } else if (targetValue >= 168) { // 1 week
+          targetValue = Math.floor(targetValue / 168);
+          targetUnit = 'w';
+        } else if (targetValue >= 24) { // 1 day
+          targetValue = Math.floor(targetValue / 24);
+          targetUnit = 'd';
+        } else {
+          targetUnit = 'h';
+        }
+      } else if (frequencyUnit === 'days') {
+        if (targetValue >= 365) { // 1 year
+          targetValue = Math.floor(targetValue / 365);
+          targetUnit = 'y';
+        } else if (targetValue >= 30) { // 1 month
+          targetValue = Math.floor(targetValue / 30);
+          targetUnit = 'm';
+        } else if (targetValue >= 7) { // 1 week
+          targetValue = Math.floor(targetValue / 7);
+          targetUnit = 'w';
+        } else {
+          targetUnit = 'd';
+        }
+      } else if (frequencyUnit === 'weeks') {
+        if (targetValue >= 52) { // 1 year
+          targetValue = Math.floor(targetValue / 52);
+          targetUnit = 'y';
+        } else if (targetValue >= 4) { // 1 month
+          targetValue = Math.floor(targetValue / 4);
+          targetUnit = 'm';
+        } else {
+          targetUnit = 'w';
+        }
+      } else if (frequencyUnit === 'months') {
+        if (targetValue >= 12) { // 1 year
+          targetValue = Math.floor(targetValue / 12);
+          targetUnit = 'y';
+        } else {
+          targetUnit = 'm';
+        }
+      } else if (frequencyUnit === 'years') {
+        targetUnit = 'y';
+      } else {
+        targetUnit = 'd';
+      }
+
+      return `${targetValue}${targetUnit}`;
     }
 
     // Fallback for old frequency format
-    if (frequency === 'weekly') return '7D';
-    if (frequency === 'monthly') return '30D';
-    return '1D';
+    if (frequency === 'weekly') return '7d';
+    if (frequency === 'monthly') return '30d';
+    return '1d';
   };
 
   return (
