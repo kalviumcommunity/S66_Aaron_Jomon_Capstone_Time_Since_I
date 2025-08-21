@@ -20,13 +20,54 @@
 - **Version Control:** GitHub
 
 ## Features
-- Track various activities and how long since they were last done.
-- Simple "Done It" button to reset the timer.
-- Customizable time limits and reminders.
-- Task grouping and categorization.
-- User authentication & account management.
-- Optional sharing with family groups.
-- Recommendation engine for recurring tasks.
+- ✅ Track various activities and how long since they were last done
+- ✅ Simple "Done It" button to reset the timer
+- ✅ User authentication & account management (JWT-based)
+- ✅ Activity creation with name, description, and frequency
+- ✅ Visual time indicators (color-coded based on frequency)
+- ✅ Activity editing and deletion
+- ✅ Responsive design with modern UI
+- ✅ Secure API endpoints with authentication middleware
+- ✅ Input validation and error handling
+- 🔄 Task grouping and categorization (future enhancement)
+- 🔄 Optional sharing with family groups (future enhancement)
+- 🔄 Recommendation engine for recurring tasks (future enhancement)
+
+## How to Run Locally
+
+### Backend Setup
+1. Navigate to the Backend directory: `cd Backend`
+2. Install dependencies: `npm install`
+3. Create a `.env` file based on `.env.example`
+4. Set up your MongoDB connection string in the `.env` file
+5. Start the server: `npm run dev` (development) or `npm start` (production)
+
+### Frontend Setup
+1. Navigate to the Frontend directory: `cd Frontend`
+2. Install dependencies: `npm install`
+3. Update the API URL in `.env` if needed (defaults to production backend)
+4. Start the development server: `npm start`
+
+### Environment Variables
+- **Backend**: Copy `.env.example` to `.env` and update with your values
+- **Frontend**: Update `REACT_APP_API_URL` in `.env` to point to your backend
+
+## API Endpoints
+
+### Authentication
+- `POST /api/auth/signup` - Create new user account
+- `POST /api/auth/login` - Login user
+
+### Activities (Protected Routes)
+- `GET /api/activities` - Get all activities for authenticated user
+- `POST /api/activities` - Create new activity
+- `PUT /api/activities/:id` - Update activity
+- `DELETE /api/activities/:id` - Delete activity
+- `PATCH /api/activities/:id/done` - Mark activity as done
+
+### User
+- `GET /api/users/profile` - Get user profile
+- `PUT /api/users/profile` - Update user profile
 
 ## 30-Day Plan
 
