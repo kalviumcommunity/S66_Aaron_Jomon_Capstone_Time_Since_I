@@ -7,7 +7,7 @@ const router = express.Router();
 // Create a new activity
 router.post("/", authenticateToken, async (req, res) => {
     try {
-        const { name, description, frequency } = req.body;
+        const { name, description, frequencyValue, frequencyUnit, frequency } = req.body;
 
         // Input validation
         if (!name || name.trim().length === 0) {
@@ -18,17 +18,56 @@ router.post("/", authenticateToken, async (req, res) => {
             return res.status(400).json({ message: "Activity name must be less than 100 characters" });
         }
 
-        const validFrequencies = ['daily', 'weekly', 'monthly'];
-        if (frequency && !validFrequencies.includes(frequency)) {
-            return res.status(400).json({ message: "Frequency must be daily, weekly, or monthly" });
+        // Validate new frequency format
+        if (frequencyValue !== undefined && frequencyUnit !== undefined) {
+            const validUnits = ['hours', 'days', 'weeks', 'months', 'years'];
+            if (!validUnits.includes(frequencyUnit)) {
+                return res.status(400).json({ message: "Frequency unit must be hours, days, weeks, months, or years" });
+            }
+            if (frequencyValue < 1) {
+                return res.status(400).json({ message: "Frequency value must be at least 1" });
+            }
+
+            // Validate maximum values based on unit
+            const maxValues = {
+                'hours': 8760,
+                'days': 366,
+                'weeks': 52,
+                'months': 12,
+                'years': 1
+            };
+
+            const maxValue = maxValues[frequencyUnit];
+            if (maxValue && frequencyValue > maxValue) {
+                return res.status(400).json({
+                    message: `Maximum ${maxValue} ${frequencyUnit} allowed`
+                });
+            }
         }
 
-        const newActivity = new Activity({
+        // Support both old and new frequency formats
+        const activityData = {
             name: name.trim(),
             description: description ? description.trim() : '',
-            frequency: frequency || 'daily',
             userId: req.user._id
-        });
+        };
+
+        if (frequencyValue !== undefined && frequencyUnit !== undefined) {
+            activityData.frequencyValue = frequencyValue;
+            activityData.frequencyUnit = frequencyUnit;
+            activityData.frequency = `${frequencyValue}_${frequencyUnit}`;
+        } else {
+            // Fallback to old format
+            const validFrequencies = ['daily', 'weekly', 'monthly'];
+            if (frequency && !validFrequencies.includes(frequency)) {
+                return res.status(400).json({ message: "Frequency must be daily, weekly, or monthly" });
+            }
+            activityData.frequency = frequency || 'daily';
+            activityData.frequencyValue = 1;
+            activityData.frequencyUnit = frequency === 'weekly' ? 'weeks' : frequency === 'monthly' ? 'months' : 'days';
+        }
+
+        const newActivity = new Activity(activityData);
         await newActivity.save();
         res.status(201).json(newActivity);
     } catch (error) {
@@ -46,12 +85,78 @@ router.get("/", authenticateToken, async (req, res) => {
     }
 });
 
+// Get a single activity by ID
+router.get("/:id", authenticateToken, async (req, res) => {
+    try {
+        const activity = await Activity.findOne({
+            _id: req.params.id,
+            userId: req.user._id
+        });
+        if (!activity) {
+            return res.status(404).json({ message: "Activity not found" });
+        }
+        res.status(200).json({ activity });
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching activity", error: error.message });
+    }
+});
+
 // Update an activity
 router.put("/:id", authenticateToken, async (req, res) => {
     try {
+        const { name, description, frequencyValue, frequencyUnit, frequency } = req.body;
+
+        // Input validation
+        if (name && name.trim().length > 100) {
+            return res.status(400).json({ message: "Activity name must be less than 100 characters" });
+        }
+
+        // Validate new frequency format if provided
+        if (frequencyValue !== undefined && frequencyUnit !== undefined) {
+            const validUnits = ['hours', 'days', 'weeks', 'months', 'years'];
+            if (!validUnits.includes(frequencyUnit)) {
+                return res.status(400).json({ message: "Frequency unit must be hours, days, weeks, months, or years" });
+            }
+            if (frequencyValue < 1) {
+                return res.status(400).json({ message: "Frequency value must be at least 1" });
+            }
+
+            // Validate maximum values based on unit
+            const maxValues = {
+                'hours': 8760,
+                'days': 366,
+                'weeks': 52,
+                'months': 12,
+                'years': 1
+            };
+
+            const maxValue = maxValues[frequencyUnit];
+            if (maxValue && frequencyValue > maxValue) {
+                return res.status(400).json({
+                    message: `Maximum ${maxValue} ${frequencyUnit} allowed`
+                });
+            }
+        }
+
+        // Prepare update data
+        const updateData = {};
+        if (name !== undefined) updateData.name = name.trim();
+        if (description !== undefined) updateData.description = description.trim();
+
+        if (frequencyValue !== undefined && frequencyUnit !== undefined) {
+            updateData.frequencyValue = frequencyValue;
+            updateData.frequencyUnit = frequencyUnit;
+            updateData.frequency = `${frequencyValue}_${frequencyUnit}`;
+        } else if (frequency !== undefined) {
+            // Handle old frequency format
+            updateData.frequency = frequency;
+            updateData.frequencyValue = 1;
+            updateData.frequencyUnit = frequency === 'weekly' ? 'weeks' : frequency === 'monthly' ? 'months' : 'days';
+        }
+
         const updatedActivity = await Activity.findOneAndUpdate(
             { _id: req.params.id, userId: req.user._id },
-            req.body,
+            updateData,
             { new: true }
         );
         if (!updatedActivity) return res.status(404).json({ message: "Activity not found" });
