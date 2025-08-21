@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import axios from '../api/axiosInstance';
 import ActivityCard from '../components/ActivityCard';
 import Header from '../components/Header';
@@ -12,7 +12,7 @@ function Dashboard() {
   const navigate = useNavigate();
 
   // Fetch activities from the backend
-  const fetchActivities = async () => {
+  const fetchActivities = useCallback(async () => {
     try {
       setLoading(true);
       const response = await axios.get('/activities');
@@ -31,7 +31,7 @@ function Dashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [navigate]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -88,7 +88,7 @@ function Dashboard() {
   // Load on first render
   useEffect(() => {
     fetchActivities();
-  }, []);
+  }, [fetchActivities]);
 
   return (
     <div style={{
@@ -100,6 +100,7 @@ function Dashboard() {
       <Header
         onAddActivity={handleAddActivity}
         onSearch={handleSearch}
+        onLogout={handleLogout}
       />
 
       <div style={{
